@@ -6,11 +6,15 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from './models/User';
 import Gig from './models/Gig';
+import cors from 'cors';
+
 
 
 const app = express();
 app.use(express.json());
 
+// Add this line after creating the Express app
+app.use(cors());
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://studentsaad41:Lb1AbHVkmc5sIfsI@cluster0.gjfyh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
@@ -87,6 +91,25 @@ app.post(
     }
   }
 );
+
+app.get('/user', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+    console.log('Fetching user with ID:', userId); // Debug log
+
+    const user = await User.findById(userId);
+    if (!user) {
+      console.error('User not found for ID:', userId); // Debug log
+       res.status(404).json({ message: 'User not found' });
+       return
+    }
+
+    res.status(200).json({ role: user.role });
+  } catch (err) {
+    console.error('Error in /user endpoint:', err); // Detailed error log
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 app.post(
   '/login',
@@ -167,6 +190,7 @@ app.post(
     }
   }
 );
+
 
 // Get all gigs
 app.get('/gigs', async (req: Request, res: Response) => {
